@@ -1,65 +1,232 @@
-import Image from "next/image";
+// app/page.tsx
+"use client";
 
-export default function Home() {
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { Product, ProductFormData, ViewMode } from "@/types";
+import { useProducts } from "@/hooks/useProducts";
+import { useToast } from "@/hooks/useToast";
+import { Header } from "@/components/Header";
+import { StatsBar } from "@/components/StatsBar";
+import { SearchBar } from "@/components/SearchBar";
+import { ProductCard } from "@/components/ProductCard";
+import { ProductTable } from "@/components/ProductTable";
+import { ProductModal } from "@/components/ProductModal";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
+import { EmptyState } from "@/components/EmptyState";
+import { ToastContainer } from "@/components/ToastContainer";
+
+const THEME_KEY = "theme";
+const THEME_CHANGE_EVENT = "theme-change";
+
+function getClientThemeSnapshot() {
+  const stored = window.localStorage.getItem(THEME_KEY);
+  if (stored === "dark") return true;
+  if (stored === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function getServerThemeSnapshot() {
+  return false;
+}
+
+function subscribeToThemeStore(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const onThemeChange = () => callback();
+
+  window.addEventListener("storage", onThemeChange);
+  window.addEventListener(THEME_CHANGE_EVENT, onThemeChange);
+  media.addEventListener("change", onThemeChange);
+
+  return () => {
+    window.removeEventListener("storage", onThemeChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, onThemeChange);
+    media.removeEventListener("change", onThemeChange);
+  };
+}
+
+export default function Page() {
+  /* ── dark mode ── */
+  const dark = useSyncExternalStore(
+    subscribeToThemeStore,
+    getClientThemeSnapshot,
+    getServerThemeSnapshot
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  const toggleDark = useCallback(() => {
+    const next = !dark;
+    window.localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+  }, [dark]);
+
+  /* ── products ── */
+  const {
+    products,
+    displayed,
+    query,
+    setQuery,
+    filters,
+    setFilters,
+    sort,
+    cycleSort,
+    resetFilters,
+    add,
+    update,
+    remove,
+    stats,
+  } = useProducts();
+
+  /* ── toasts ── */
+  const { toasts, remove: removeToast, toast } = useToast();
+
+  /* ── modal state ── */
+  const [view, setView] = useState<ViewMode>("grid");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState<Product | null>(null);
+
+  /* ── handlers ── */
+  const handleSubmit = useCallback(
+    (data: ProductFormData) => {
+      if (editing) {
+        update(editing.id, data);
+        toast.success("Product updated", `"${data.name}" has been saved.`);
+      } else {
+        add(data);
+        toast.success(
+          "Product added",
+          `"${data.name}" is now in your inventory.`
+        );
+      }
+      setModalOpen(false);
+      setEditing(null);
+    },
+    [editing, add, update, toast]
+  );
+
+  const openAdd = useCallback(() => {
+    setEditing(null);
+    setModalOpen(true);
+  }, []);
+
+  const openEdit = useCallback((p: Product) => {
+    setEditing(p);
+    setModalOpen(true);
+  }, []);
+
+  const openDelete = useCallback((p: Product) => setDeleting(p), []);
+
+  const confirmDelete = useCallback(() => {
+    if (!deleting) return;
+    remove(deleting.id);
+    toast.success("Product deleted", `"${deleting.name}" has been removed.`);
+    setDeleting(null);
+  }, [deleting, remove, toast]);
+
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setEditing(null);
+  }, []);
+
+  /* ── derived ── */
+  const hasFilters =
+    !!query ||
+    !!filters.category ||
+    !!filters.minPrice ||
+    !!filters.maxPrice ||
+    filters.inStock;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <Header
+        darkMode={dark}
+        onToggleDarkMode={toggleDark}
+        onAddProduct={openAdd}
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Stats */}
+        {products.length > 0 && (
+          <StatsBar
+            total={stats.total}
+            totalValue={stats.value}
+            inStock={stats.inStock}
+            categories={stats.categories}
+          />
+        )}
+
+        {/* Toolbar */}
+        {products.length > 0 && (
+          <SearchBar
+            searchQuery={query}
+            onSearchChange={setQuery}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onResetFilters={resetFilters}
+            viewMode={view}
+            onViewModeChange={setView}
+            sortConfig={sort}
+            onSortChange={cycleSort}
+            resultsCount={displayed.length}
+            totalCount={products.length}
+          />
+        )}
+
+        {/* Content */}
+        {products.length === 0 ? (
+          <EmptyState
+            hasFilters={false}
+            onAddProduct={openAdd}
+            onResetFilters={resetFilters}
+          />
+        ) : displayed.length === 0 ? (
+          <EmptyState
+            hasFilters={hasFilters}
+            onAddProduct={openAdd}
+            onResetFilters={resetFilters}
+          />
+        ) : view === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {displayed.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                onEdit={openEdit}
+                onDelete={openDelete}
+              />
+            ))}
+          </div>
+        ) : (
+          <ProductTable
+            products={displayed}
+            onEdit={openEdit}
+            onDelete={openDelete}
+          />
+        )}
       </main>
-    </div>
+
+      {/* Modals */}
+      <ProductModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+        editingProduct={editing}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deleting}
+        product={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
+
+      {/* Toasts */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
   );
 }

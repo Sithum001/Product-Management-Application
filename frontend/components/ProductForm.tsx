@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { ProductFormData, ProductFormErrors } from "@/types";
 import { CATEGORIES } from "@/lib/constants";
 import {
@@ -106,16 +107,19 @@ export function ProductForm({
           {/* Preview */}
           <div
             className={cn(
-              "w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center flex-shrink-0 overflow-hidden",
+              "w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center shrink-0 overflow-hidden",
               hasImage
                 ? "border-transparent"
                 : "border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50"
             )}
           >
             {hasImage ? (
-              <img
+              <Image
                 src={formData.image}
                 alt="Preview"
+                width={96}
+                height={96}
+                unoptimized
                 className="w-full h-full object-cover rounded-2xl"
                 onError={() => setImagePreviewError(true)}
               />

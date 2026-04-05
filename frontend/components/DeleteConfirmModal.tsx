@@ -62,7 +62,7 @@ export function DeleteConfirmModal({
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-2 mb-6">
           Are you sure you want to delete{" "}
           <span className="font-semibold text-slate-700 dark:text-slate-200">
-            "{product.name}"
+            &quot;{product.name}&quot;
           </span>
           ? This action cannot be undone.
         </p>

@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Product } from "@/types";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -29,9 +30,12 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
       {/* Image */}
       <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-700">
         {!imageError ? (
-          <img
+          <Image
             src={product.image}
             alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            unoptimized
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={() => setImageError(true)}
           />

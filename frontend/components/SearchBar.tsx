@@ -45,13 +45,7 @@ export function SearchBar({
     filters.inStock ||
     searchQuery;
 
-  const SortButton = ({
-    field,
-    label,
-  }: {
-    field: SortConfig["field"];
-    label: string;
-  }) => (
+  const renderSortButton = (field: SortConfig["field"], label: string) => (
     <button
       onClick={() => onSortChange(field)}
       className={cn(
@@ -324,10 +318,10 @@ export function SearchBar({
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Sort by:
             </span>
-            <SortButton field="createdAt" label="Date Added" />
-            <SortButton field="name" label="Name" />
-            <SortButton field="price" label="Price" />
-            <SortButton field="stock" label="Stock" />
+            {renderSortButton("createdAt", "Date Added")}
+            {renderSortButton("name", "Name")}
+            {renderSortButton("price", "Price")}
+            {renderSortButton("stock", "Stock")}
 
             {hasActiveFilters && (
               <Button

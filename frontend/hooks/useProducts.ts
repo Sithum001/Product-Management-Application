@@ -8,7 +8,7 @@ import {
   filterProducts,
   sortProducts,
 } from "@/lib/utils";
-import { DEFAULT_IMAGE, STORAGE_KEY } from "@/lib/constants";
+import { DEFAULT_PRODUCT_IMAGE, STORAGE_KEY } from "@/lib/constants";
 
 const DEFAULT_SORT: SortConfig = { field: "createdAt", order: "desc" };
 const DEFAULT_FILTERS: FilterConfig = {
@@ -32,7 +32,7 @@ export function useProducts() {
         name: data.name.trim(),
         price: parseFloat(data.price),
         description: data.description.trim(),
-        image: data.image.trim() || DEFAULT_IMAGE,
+        image: data.image.trim() || DEFAULT_PRODUCT_IMAGE,
         category: data.category,
         stock: parseInt(data.stock),
         createdAt: now,
@@ -54,7 +54,7 @@ export function useProducts() {
                 name: data.name.trim(),
                 price: parseFloat(data.price),
                 description: data.description.trim(),
-                image: data.image.trim() || DEFAULT_IMAGE,
+                image: data.image.trim() || DEFAULT_PRODUCT_IMAGE,
                 category: data.category,
                 stock: parseInt(data.stock),
                 updatedAt: new Date().toISOString(),

@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Product } from "@/types";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -71,10 +72,13 @@ export function ProductTable({
                   {/* Product Info */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
-                        <img
+                      <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
+                        <Image
                           src={product.image}
                           alt={product.name}
+                          fill
+                          sizes="40px"
+                          unoptimized
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display =
