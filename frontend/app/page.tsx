@@ -149,7 +149,8 @@ export default function Page() {
         onAddProduct={openAdd}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <main className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-8 space-y-8">
+
         {/* Stats */}
         {products.length > 0 && (
           <StatsBar
@@ -158,7 +159,8 @@ export default function Page() {
             inStock={stats.inStock}
             categories={stats.categories}
           />
-        )}
+        )}      
+
 
         {/* Toolbar */}
         {products.length > 0 && (
